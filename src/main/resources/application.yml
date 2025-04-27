@@ -1,7 +1,13 @@
 spring:
   application:
     name: complaints
-
+  datasource:
+    url: jdbc:postgresql://localhost:5432/complaints
+    username: postgres
+    password: postgres
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
 server:
   port: 8080
 
