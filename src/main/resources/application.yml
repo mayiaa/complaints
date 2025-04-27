@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: complaints
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.springframework.test.web.servlet: INFO
+    org.flywaydb: INFO
