@@ -1,6 +1,8 @@
 package com.maja.complaints.service
 
 import com.maja.complaints.dto.ComplaintRequest
+import com.maja.complaints.dto.ComplaintUpdateRequest
+import com.maja.complaints.exception.ComplaintNotFoundException
 import com.maja.complaints.model.Complaint
 import com.maja.complaints.repository.ComplaintRepository
 import spock.lang.Specification
@@ -87,6 +89,40 @@ class ComplaintServiceTest extends Specification {
         response.complaintCounter == 2
         response.id == existingComplaint.id
         response.creationDate == existingComplaint.creationDate
+    }
+
+    def "should successfully update complaint content"() {
+        given: "an existing complaint"
+        def complaintId = UUID.randomUUID()
+        def userId = UUID.randomUUID()
+        def existingComplaint = createComplaint(complaintId)
+        def updateRequest = new ComplaintUpdateRequest("Updated content")
+
+        complaintRepository.findById(complaintId) >> Optional.of(existingComplaint)
+        complaintRepository.save(_) >> { Complaint c -> c }
+
+        when: "updating the complaint"
+        def response = complaintService.updateComplaint(complaintId, updateRequest, userId)
+
+        then: "the complaint is updated with new content"
+        response.id == complaintId
+        response.content == "Updated content"
+    }
+
+    def "should throw exception when updating non-existent complaint"() {
+        given: "a non-existent complaint id"
+        def complaintId = UUID.randomUUID()
+        def userId = UUID.randomUUID()
+        def updateRequest = new ComplaintUpdateRequest("Updated content")
+
+        and: "repository returns empty optional"
+        complaintRepository.findById(complaintId) >> Optional.empty()
+
+        when: "attempting to update the complaint"
+        complaintService.updateComplaint(complaintId, updateRequest, userId)
+
+        then: "ComplaintNotFoundException is thrown"
+        thrown(ComplaintNotFoundException)
     }
 
     private static Complaint createComplaint(UUID id, String country = "US", UUID productId = UUID.randomUUID(), UUID createdBy = UUID.randomUUID()) {

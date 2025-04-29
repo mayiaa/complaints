@@ -2,6 +2,8 @@ package com.maja.complaints.service;
 
 import com.maja.complaints.dto.ComplaintRequest;
 import com.maja.complaints.dto.ComplaintResponse;
+import com.maja.complaints.dto.ComplaintUpdateRequest;
+import com.maja.complaints.exception.ComplaintNotFoundException;
 import com.maja.complaints.model.Complaint;
 import com.maja.complaints.repository.ComplaintRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,18 @@ public class ComplaintService {
         Complaint savedComplaint = complaintRepository.save(complaintToBeSaved);
 
         return mapToComplaintResponse(savedComplaint);
+    }
+
+    @Transactional
+    public ComplaintResponse updateComplaint(UUID complaintId, ComplaintUpdateRequest request, UUID userId) {
+        Complaint complaint = complaintRepository.findById(complaintId)
+                .orElseThrow(() -> new ComplaintNotFoundException("Complaint not found with id: " + complaintId));
+
+        complaint.setContent(request.getContent());
+
+        Complaint updatedComplaint = complaintRepository.save(complaint);
+
+        return mapToComplaintResponse(updatedComplaint);
     }
 
     private ComplaintResponse mapToComplaintResponse(Complaint complaint) {

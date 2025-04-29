@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+  flyway:
+    enabled: true
+    clean-disabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.test.web.servlet: DEBUG
+    org.flywaydb: INFO

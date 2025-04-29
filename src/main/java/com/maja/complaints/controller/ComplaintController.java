@@ -2,6 +2,8 @@ package com.maja.complaints.controller;
 
 import com.maja.complaints.dto.ComplaintRequest;
 import com.maja.complaints.dto.ComplaintResponse;
+import com.maja.complaints.dto.ComplaintUpdateRequest;
+import com.maja.complaints.exception.ComplaintNotFoundException;
 import com.maja.complaints.service.ComplaintService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -31,6 +33,21 @@ public class ComplaintController {
 
         ComplaintResponse response = complaintService.createComplaint(complaintRequest, userId, ip);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{complaintId}")
+    public ResponseEntity<ComplaintResponse> updateComplaint(
+            @PathVariable UUID complaintId,
+            @RequestBody ComplaintUpdateRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        try {
+            UUID userId = extractUserIdFromJwt(jwt);
+            ComplaintResponse response = complaintService.updateComplaint(complaintId, request, userId);
+            return ResponseEntity.ok(response);
+        } catch (ComplaintNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     private UUID extractUserIdFromJwt(Jwt jwt) {

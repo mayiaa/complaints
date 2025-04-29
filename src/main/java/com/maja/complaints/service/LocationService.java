@@ -5,5 +5,5 @@ import org.springframework.stereotype.Service;
 @Service
 public interface LocationService {
 
-    String locateOrDefault(String ipAddressString, String fallbackCountryVale);
+    default String locateOrDefault(String ipAddressString, String fallbackCountryVale) { return fallbackCountryVale; }
 }

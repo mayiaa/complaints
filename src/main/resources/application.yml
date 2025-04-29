@@ -10,6 +10,9 @@ spring:
     baseline-on-migrate: true
 server:
   port: 8080
+security:
+  jwt:
+    secret: your-secret-key-here-minimum-256-bits-long
 
 logging:
   level:
