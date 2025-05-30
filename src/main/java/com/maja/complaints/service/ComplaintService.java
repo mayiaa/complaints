@@ -8,6 +8,7 @@ import com.maja.complaints.exception.ComplaintNotFoundException;
 import com.maja.complaints.model.Complaint;
 import com.maja.complaints.repository.ComplaintRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ComplaintService {
@@ -32,6 +34,7 @@ public class ComplaintService {
 
     @Transactional
     public ComplaintResponse createComplaint(ComplaintRequest request, UUID userId, String ip) {
+        log.info("Creating new complaint {} for user {}", request, userId);
 
         var complaintToBeSaved = complaintRepository.findByCreatedByAndProductId(userId, request.getProductId())
                 .flatMap(complaint -> {
@@ -47,6 +50,8 @@ public class ComplaintService {
 
     @Transactional
     public ComplaintResponse updateComplaint(UUID complaintId, ComplaintUpdateRequest request, UUID userId) {
+        log.info("Updating complaint with id {} by user {}", complaintId, userId);
+
         Complaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() -> new ComplaintNotFoundException("Complaint not found with id: " + complaintId));
 
@@ -59,6 +64,8 @@ public class ComplaintService {
 
     @Transactional(readOnly = true)
     public PagedComplaintsResponse getComplaints(String country, UUID productId, UUID createdBy, Pageable pageable) {
+        log.debug("Searching for complaints with country {}, product id {}, created by {}, pageable {}", country, productId, createdBy, pageable);
+
         Page<Complaint> complaintsPage = complaintRepository.findAllByFilters(country, productId, createdBy, pageable);
 
         List<ComplaintResponse> complaintResponses = complaintsPage.getContent().stream()

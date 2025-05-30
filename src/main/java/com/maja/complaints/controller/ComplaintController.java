@@ -30,7 +30,7 @@ public class ComplaintController {
     public ResponseEntity<ComplaintResponse> createComplaint(
             HttpServletRequest request, @RequestBody @Valid ComplaintRequest complaintRequest,
             @AuthenticationPrincipal Jwt jwt) {
-        
+
         UUID userId = extractUserIdFromJwt(jwt);
         String ip = request.getRemoteAddr();
 
@@ -44,13 +44,9 @@ public class ComplaintController {
             @RequestBody ComplaintUpdateRequest request,
             @AuthenticationPrincipal Jwt jwt) {
 
-        try {
-            UUID userId = extractUserIdFromJwt(jwt);
-            ComplaintResponse response = complaintService.updateComplaint(complaintId, request, userId);
-            return ResponseEntity.ok(response);
-        } catch (ComplaintNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        UUID userId = extractUserIdFromJwt(jwt);
+        ComplaintResponse response = complaintService.updateComplaint(complaintId, request, userId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

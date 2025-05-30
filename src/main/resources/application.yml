@@ -10,10 +10,12 @@ spring:
     baseline-on-migrate: true
 server:
   port: 8080
+geoip:
+  database:
+    path: src/main/resources/GeoLite2-Country.mmdb
 security:
   jwt:
     secret: your-secret-key-here-minimum-256-bits-long
-
 logging:
   level:
     org.springframework.security: INFO
