@@ -3,11 +3,14 @@ package com.maja.complaints.controller;
 import com.maja.complaints.dto.ComplaintRequest;
 import com.maja.complaints.dto.ComplaintResponse;
 import com.maja.complaints.dto.ComplaintUpdateRequest;
+import com.maja.complaints.dto.PagedComplaintsResponse;
 import com.maja.complaints.exception.ComplaintNotFoundException;
 import com.maja.complaints.service.ComplaintService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,6 +51,20 @@ public class ComplaintController {
         } catch (ComplaintNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<PagedComplaintsResponse> getComplaints(
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) UUID productId,
+            @RequestParam(required = false) UUID createdBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        PagedComplaintsResponse response = complaintService.getComplaints(country, productId, createdBy, pageable);
+        return ResponseEntity.ok(response);
     }
 
     private UUID extractUserIdFromJwt(Jwt jwt) {

@@ -5,6 +5,9 @@ import com.maja.complaints.dto.ComplaintUpdateRequest
 import com.maja.complaints.exception.ComplaintNotFoundException
 import com.maja.complaints.model.Complaint
 import com.maja.complaints.repository.ComplaintRepository
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -123,6 +126,80 @@ class ComplaintServiceTest extends Specification {
 
         then: "ComplaintNotFoundException is thrown"
         thrown(ComplaintNotFoundException)
+    }
+
+    def "should return filtered complaints page"() {
+        given: "filter parameters"
+        def country = "US"
+        def productId = UUID.randomUUID()
+        def createdBy = UUID.randomUUID()
+        def pageable = PageRequest.of(0, 20)
+
+        and: "existing complaints"
+        def complaints = [
+                createComplaint(UUID.randomUUID(), country, productId, createdBy),
+                createComplaint(UUID.randomUUID(), country, productId, createdBy)
+        ]
+        def complaintsPage = new PageImpl<>(complaints, pageable, complaints.size())
+        complaintRepository.findAllByFilters(country, productId, createdBy, pageable) >> complaintsPage
+
+        when: "getting complaints with filters"
+        def response = complaintService.getComplaints(country, productId, createdBy, pageable)
+
+        then: "correct page of complaints is returned"
+        response.content.size() == 2
+        response.totalPages == 1
+        response.totalElements == 2
+        response.currentPage == 0
+    }
+
+    def "should handle empty results when filtering complaints"() {
+        given: "filter parameters"
+        def pageable = PageRequest.of(0, 20)
+
+        and: "empty page from repository"
+        def emptyPage = new PageImpl<Complaint>([], pageable, 0)
+        complaintRepository.findAllByFilters(null, null, null, pageable) >> emptyPage
+
+        when: "getting complaints without filters"
+        def response = complaintService.getComplaints(null, null, null, pageable)
+
+        then: "empty page is returned"
+        response.content.isEmpty()
+        response.totalPages == 0
+        response.totalElements == 0
+        response.currentPage == 0
+    }
+
+    def "should apply different filter combinations"() {
+        given: "pageable parameter"
+        def pageable = PageRequest.of(0, 20)
+
+        complaintRepository.findAllByFilters(country, productId, createdBy, pageable) >> { String c, UUID p, UUID u, Pageable pag ->
+            new PageImpl<>([createComplaint(UUID.randomUUID(), c, p, u)], pag, 1)
+        }
+
+        when: "getting complaints with different filter combinations"
+        def response = complaintService.getComplaints(country, productId, createdBy, pageable)
+
+        then: "correct filtered results are returned"
+        response.content.size() == 1
+        if (country) {
+            response.content[0].country == country
+        }
+        if (productId) {
+            response.content[0].productId == productId
+        }
+        if (createdBy) {
+            response.content[0].createdBy == createdBy
+        }
+
+        where:
+        country | productId           | createdBy
+        "US"    | UUID.randomUUID()  | UUID.randomUUID()
+        "DE"    | null               | UUID.randomUUID()
+        null    | UUID.randomUUID()  | null
+        "PL"    | null               | null
     }
 
     private static Complaint createComplaint(UUID id, String country = "US", UUID productId = UUID.randomUUID(), UUID createdBy = UUID.randomUUID()) {
